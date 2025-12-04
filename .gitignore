@@ -53,3 +53,4 @@ data/zookeeper/
 # Markdown
 *.md
 !README.md
+!RUNBOOK.md
