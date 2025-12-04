@@ -1,0 +1,26 @@
+dependencies {
+    // Common module
+    implementation project(':common')
+    
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    
+    // AWS SDK
+    implementation 'software.amazon.awssdk:sqs:2.21.0'
+    
+    // Resilience4j for Circuit Breaker
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.1.0'
+    implementation 'io.github.resilience4j:resilience4j-retry:2.1.0'
+    
+    // Metrics
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    
+    // Testing
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.testcontainers:kafka:1.19.3'
+}

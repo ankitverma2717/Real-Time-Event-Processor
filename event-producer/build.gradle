@@ -1,0 +1,22 @@
+dependencies {
+    // Common module
+    implementation project(':common')
+    
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    
+    // AWS SDK
+    implementation 'software.amazon.awssdk:sqs:2.21.0'
+    implementation 'software.amazon.awssdk:sns:2.21.0'
+    
+    // Metrics and Monitoring
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    
+    // Testing
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+}

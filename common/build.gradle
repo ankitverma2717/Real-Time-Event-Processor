@@ -1,0 +1,22 @@
+dependencies {
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Jackson for JSON serialization
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // AWS SDK
+    implementation 'software.amazon.awssdk:sqs:2.21.0'
+    implementation 'software.amazon.awssdk:sns:2.21.0'
+    implementation 'software.amazon.awssdk:cloudwatch:2.21.0'
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}

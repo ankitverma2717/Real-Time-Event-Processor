@@ -1,0 +1,8 @@
+rootProject.name = 'real-time-event-processing'
+
+include 'common'
+include 'event-producer'
+include 'event-consumer'
+include 'lambda-processor'
+include 'data-ingestion-service'
+include 'monitoring-service'

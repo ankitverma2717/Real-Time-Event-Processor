@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # LocalStack - AWS Services Emulation
+  localstack:
+    container_name: localstack
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"            # LocalStack Gateway
+      - "4510-4559:4510-4559"  # External services port range
+    environment:
+      - SERVICES=sqs,sns,lambda,cloudwatch,logs,iam
+      - DEBUG=1
+      - PERSISTENCE=1
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "./localstack-data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - event-processing-network
+
+  # Zookeeper - Required for Kafka
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - "./data/zookeeper/data:/var/lib/zookeeper/data"
+      - "./data/zookeeper/log:/var/lib/zookeeper/log"
+    networks:
+      - event-processing-network
+
+  # Apache Kafka
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_NUM_PARTITIONS: 6
+    volumes:
+      - "./data/kafka:/var/lib/kafka/data"
+    networks:
+      - event-processing-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MongoDB
+  mongodb:
+    container_name: mongodb
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: event_processing
+    volumes:
+      - "./data/mongodb:/data/db"
+      - "./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro"
+    networks:
+      - event-processing-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Mongo Express - MongoDB Web UI (Optional for development)
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:latest
+    depends_on:
+      - mongodb
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    networks:
+      - event-processing-network
+
+  # Kafka UI - For monitoring Kafka topics (Optional for development)
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - event-processing-network
+
+networks:
+  event-processing-network:
+    driver: bridge
+
+volumes:
+  localstack-data:
+  zookeeper-data:
+  kafka-data:
+  mongodb-data:

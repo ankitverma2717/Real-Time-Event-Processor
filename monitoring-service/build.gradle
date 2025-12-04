@@ -1,0 +1,21 @@
+dependencies {
+    // Common module
+    implementation project(':common')
+    
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // AWS SDK for CloudWatch
+    implementation 'software.amazon.awssdk:cloudwatch:2.21.0'
+    implementation 'software.amazon.awssdk:cloudwatchlogs:2.21.0'
+    implementation 'software.amazon.awssdk:sns:2.21.0'
+    
+    // Kafka for monitoring events
+    implementation 'org.springframework.kafka:spring-kafka'
+    
+    // Metrics
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.micrometer:micrometer-core'
+}

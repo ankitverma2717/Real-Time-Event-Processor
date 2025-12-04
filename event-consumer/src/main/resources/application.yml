@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: event-consumer
+  
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: event-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 500
+      fetch-min-size: 1
+      fetch-max-wait-ms: 500
+    listener:
+      ack-mode: manual
+      concurrency: 3
+      poll-timeout: 3000
+
+# AWS Configuration (LocalStack)
+aws:
+  endpoint: http://localhost:4566
+  region: us-east-1
+  accessKey: test
+  secretKey: test
+  sqs:
+    queue-url: http://localhost:4566/000000000000/event-processing-queue
+    dlq-url: http://localhost:4566/000000000000/event-dlq
+    max-messages: 10
+    wait-time-seconds: 20
+    visibility-timeout: 30
+
+# Server Configuration
+server:
+  port: 8082
+
+# Management/Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers,circuitbreakerevents
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      eventProcessing:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+  
+  retry:
+    instances:
+      eventProcessing:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.lang.RuntimeException
+          - java.io.IOException
+
+# Application Configuration
+app:
+  event:
+    max-retry-attempts: 3
+    initial-retry-delay: 1000
+    retry-multiplier: 2.0
+  processing:
+    batch-size: 100
+    thread-pool-size: 10

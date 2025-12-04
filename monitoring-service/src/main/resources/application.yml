@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: monitoring-service
+  
+  data:
+    mongodb:
+      uri: mongodb://admin:admin123@localhost:27017/event_processing?authSource=admin
+      database: event_processing
+  
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: monitoring-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+
+# AWS Configuration (LocalStack)
+aws:
+  endpoint: http://localhost:4566
+  region: us-east-1
+  accessKey: test
+  secretKey: test
+  cloudwatch:
+    namespace: EventProcessing
+  sns:
+    alert-topic-arn: arn:aws:sns:us-east-1:000000000000:alert-notifications
+
+# Server Configuration
+server:
+  port: 8084
+
+# Management/Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+      cloudwatch:
+        enabled: true
+        namespace: ${aws.cloudwatch.namespace}
+        batch-size: 20
+
+# Application Configuration
+app:
+  monitoring:
+    interval: 60000  # 1 minute
+    alert:
+      error-rate-threshold: 5.0  # 5% error rate
+      latency-threshold: 1000    # 1 second
